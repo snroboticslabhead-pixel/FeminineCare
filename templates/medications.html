@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block main_class %}flex-1 px-4 pb-24 overflow-y-auto md:pb-8 md:p-8{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 p-4 pb-2 backdrop-blur-sm md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:relative md:pt-0">
+    <div class="flex size-12 shrink-0 items-center justify-start">
+        <a href="{{ url_for('dashboard') }}" class="flex items-center justify-center p-0 text-text-primary dark:text-white md:hidden">
+            <span class="material-symbols-outlined text-2xl">west</span>
+        </a>
+    </div>
+    <h1 class="flex-1 text-center text-lg font-bold leading-tight tracking-[-0.015em] text-text-primary dark:text-white md:text-left md:text-3xl">My Medications</h1>
+
+    <div class="flex w-12 items-center justify-end">
+    </div>
+</header>
+
+<div class="pb-24 md:pb-0">
+    <div class="flex py-3 mx-auto md:mx-0 md:max-w-xs">
+        <div class="flex h-12 flex-1 items-center justify-center rounded-full bg-surface p-1.5">
+            <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-full px-2 text-sm font-semibold leading-normal text-text-secondary has-[:checked]:bg-card-background has-[:checked]:text-text-primary">
+                <span class="truncate">Upcoming</span>
+                <input checked class="invisible w-0" name="view-toggle" type="radio" value="Upcoming" onchange="toggleView('upcoming')">
+            </label>
+            <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-full px-2 text-sm font-semibold leading-normal text-text-secondary has-[:checked]:bg-card-background has-[:checked]:text-text-primary">
+                <span class="truncate">History</span>
+                <input class="invisible w-0" name="view-toggle" type="radio" value="History" onchange="toggleView('history')">
+            </label>
+        </div>
+    </div>
+
+    <div id="upcomingView" class="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
+        {% if not morning_meds and not evening_meds %}
+            <div class="text-center py-4 text-text-secondary dark:text-gray-400 lg:col-span-2">
+                No medications added yet
+            </div>
+        {% else %}
+            <section>
+                <h2 class="px-2 pb-2 pt-4 text-lg font-bold leading-tight tracking-[-0.015em] text-text-primary dark:text-white">Morning</h2>
+                {% if morning_meds %}
+                    <div class="space-y-3 p-4">
+                        {% for med in morning_meds %}
+                            <div class="flex min-h-[72px] items-center gap-4 py-2">
+                                <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-surface dark:bg-white/5 text-text-primary dark:text-white">
+                                        <span class="material-symbols-outlined filled">pill</span>
+                                    </div>
+                                    <div class="flex flex-col justify-center flex-1">
+                                        <p class="text-base font-semibold leading-normal text-text-primary dark:text-white line-clamp-1">{{ med.name }}</p>
+                                        <p class="text-sm font-normal leading-normal text-text-secondary dark:text-gray-400 line-clamp-2">{{ med.dosage }}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs font-medium text-text-secondary dark:text-gray-400">{{ med.quantity }} left</span>
+                                            <div class="flex-1 h-1.5 bg-surface dark:bg-gray-700 rounded-full overflow-hidden">
+                                                {% set initial_qty = med.initial_quantity or 30 %}
+                                                {% set initial_qty = 30 if initial_qty <= 0 else initial_qty %}
+                                                {% set width_percentage = (med.quantity / initial_qty) * 100 %}
+                                                {% if width_percentage > 100 %}{% set width_percentage = 100 %}{% endif %}
+                                                <div class="h-full {% if med.quantity > (initial_qty * 0.25) %}bg-success{% elif med.quantity > 0 %}bg-alert{% else %}bg-danger{% endif %} rounded-full" style="width: {{ width_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="shrink-0 flex gap-2">
+                                    <button onclick="editMedication('{{ med.id }}', '{{ med.name }}', '{{ med.dosage }}', '{{ med.frequency }}', '{{ med.time_of_day }}', {{ med.quantity }})" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                                        <span class="material-symbols-outlined text-xl">edit</span>
+                                    </button>
+                                    <form action="{{ url_for('delete_medication', med_id=med.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this medication?')">
+                                        <button type="submit" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                                            <span class="material-symbols-outlined text-xl">delete</span>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('take_medication', med_id=med.id) }}" method="post">
+                                        {% if med.quantity <= 0 %}
+                                            <button type="button" class="flex h-10 min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full bg-gray-400 dark:bg-gray-600 px-4 text-sm font-bold leading-normal text-white" disabled>
+                                                <span class="truncate">Out of Stock</span>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary px-4 text-sm font-bold leading-normal text-white">
+                                                <span class="truncate">Take Now</span>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                            {% if not loop.last %}
+                                <div class="h-px w-full bg-border-color dark:bg-white/10"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="px-2 text-sm text-text-secondary dark:text-gray-400">No morning medications.</p>
+                {% endif %}
+            </section>
+            
+            <section>
+                <h2 class="px-2 pb-2 pt-4 text-lg font-bold leading-tight tracking-[-0.015em] text-text-primary dark:text-white">Evening</h2>
+                {% if evening_meds %}
+                    <div class="space-y-3 p-4">
+                        {% for med in evening_meds %}
+                            <div class="flex min-h-[72px] items-center gap-4 py-2">
+                                <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-surface dark:bg-white/5 text-text-primary dark:text-white">
+                                        <span class="material-symbols-outlined filled">pill</span>
+                                    </div>
+                                    <div class="flex flex-col justify-center flex-1">
+                                        <p class="text-base font-semibold leading-normal text-text-primary dark:text-white line-clamp-1">{{ med.name }}</p>
+                                        <p class="text-sm font-normal leading-normal text-text-secondary dark:text-gray-400 line-clamp-2">{{ med.dosage }}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs font-medium text-text-secondary dark:text-gray-400">{{ med.quantity }} left</span>
+                                            <div class="flex-1 h-1.5 bg-surface dark:bg-gray-700 rounded-full overflow-hidden">
+                                                {% set initial_qty = med.initial_quantity or 30 %}
+                                                {% set initial_qty = 30 if initial_qty <= 0 else initial_qty %}
+                                                {% set width_percentage = (med.quantity / initial_qty) * 100 %}
+                                                {% if width_percentage > 100 %}{% set width_percentage = 100 %}{% endif %}
+                                                <div class="h-full {% if med.quantity > (initial_qty * 0.25) %}bg-success{% elif med.quantity > 0 %}bg-alert{% else %}bg-danger{% endif %} rounded-full" style="width: {{ width_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="shrink-0 flex gap-2">
+                                    <button onclick="editMedication('{{ med.id }}', '{{ med.name }}', '{{ med.dosage }}', '{{ med.frequency }}', '{{ med.time_of_day }}', {{ med.quantity }})" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                                        <span class="material-symbols-outlined text-xl">edit</span>
+                                    </button>
+                                    <form action="{{ url_for('delete_medication', med_id=med.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this medication?')">
+                                        <button type="submit" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                                            <span class="material-symbols-outlined text-xl">delete</span>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('take_medication', med_id=med.id) }}" method="post">
+                                        {% if med.quantity <= 0 %}
+                                            <button type="button" class="flex h-10 min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full bg-gray-400 dark:bg-gray-600 px-4 text-sm font-bold leading-normal text-white" disabled>
+                                                <span class="truncate">Out of Stock</span>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary px-4 text-sm font-bold leading-normal text-white">
+                                                <span class="truncate">Take Now</span>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                            {% if not loop.last %}
+                                <div class="h-px w-full bg-border-color dark:bg-white/10"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="px-2 text-sm text-text-secondary dark:text-gray-400">No evening medications.</p>
+                {% endif %}
+            </section>
+        {% endif %}
+    </div>
+
+    <div id="historyView" class="hidden space-y-6">
+        {% if grouped_history %}
+            {% for date, items in grouped_history.items() %}
+                <section>
+                    <h2 class="px-2 pb-2 pt-4 text-lg font-bold leading-tight tracking-[-0.015em] text-text-primary dark:text-white">{{ date }}</h2>
+                    <div class="space-y-3 p-4">
+                        {% for item in items %}
+                            <div class="flex min-h-[72px] items-center gap-4 py-2">
+                                <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-success/20 text-success">
+                                        <span class="material-symbols-outlined">check_circle</span>
+                                    </div>
+                                    <div class="flex flex-col justify-center">
+                                        <p class="text-base font-semibold leading-normal text-text-primary dark:text-white line-clamp-1">{{ item.medication_name }}</p>
+                                        <p class="text-sm font-normal leading-normal text-text-secondary dark:text-gray-400 line-clamp-2">{{ item.dosage }}</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <p class="text-sm font-semibold text-text-primary dark:text-white">Taken at {{ item.date.strftime('%I:%M %p') }}</p>
+                                </div>
+                            </div>
+                            {% if not loop.last %}
+                                <div class="h-px w-full bg-border-color dark:bg-white/10"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4 text-text-secondary dark:text-gray-400">
+                No medication history yet
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="addMedicationModal" class="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-end justify-center z-50 opacity-0 pointer-events-none transition-opacity md:items-center">
+    <div class="w-full bg-background-light dark:bg-background-dark rounded-t-xl p-4 pt-5 pb-6 flex flex-col max-h-[90vh] overflow-y-auto md:rounded-lg md:max-w-md md:max-h-[80vh]">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-text-primary dark:text-white">Add Medication</h2>
+            <button onclick="toggleAddMedicationModal()" class="text-text-secondary dark:text-text-secondary/80 size-8 rounded-full flex items-center justify-center bg-surface dark:bg-text-primary/20">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+        </div>
+        <form action="{{ url_for('add_medication') }}" method="post" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="name">Medication Name</label>
+                <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="name" name="name" type="text" placeholder="e.g., Iron Supplement" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="dosage">Dosage</label>
+                <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="dosage" name="dosage" type="text" placeholder="e.g., 1 Tablet, 50mg" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="frequency">Frequency</label>
+                <select class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white focus:ring-1 focus:ring-primary focus:border-primary" id="frequency" name="frequency" required>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="as-needed">As Needed</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="time_of_day">Time of Day</label>
+                <select class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white focus:ring-1 focus:ring-primary focus:border-primary" id="time_of_day" name="time_of_day" required>
+                    <option value="morning">Morning</option>
+                    <option value="evening">Evening</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="quantity">Quantity</label>
+                <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="quantity" name="quantity" type="number" min="0" placeholder="e.g., 30" required>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button type="button" onclick="toggleAddMedicationModal()" class="flex-1 h-12 px-6 border border-border-color dark:border-primary/50 text-text-primary dark:text-white font-bold rounded-full hover:bg-surface/50 dark:hover:bg-primary/10 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 h-12 px-6 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-colors">
+                    Add Medication
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleView(view) {
+        const upcomingView = document.getElementById('upcomingView');
+        const historyView = document.getElementById('historyView');
+        
+        if (view === 'upcoming') {
+            upcomingView.classList.remove('hidden');
+            historyView.classList.add('hidden');
+        } else {
+            upcomingView.classList.add('hidden');
+            historyView.classList.remove('hidden');
+        }
+    }
+    
+    function toggleAddMedicationModal(medId = null, name = '', dosage = '', frequency = '', timeOfDay = '', quantity = '') {
+        const modal = document.getElementById('addMedicationModal');
+        const form = document.querySelector('#addMedicationModal form');
+        
+        if (medId) {
+            // Editing existing medication
+            form.action = `/update_medication/${medId}`;
+            document.getElementById('name').value = name;
+            document.getElementById('dosage').value = dosage;
+            document.getElementById('frequency').value = frequency;
+            document.getElementById('time_of_day').value = timeOfDay;
+            document.getElementById('quantity').value = quantity;
+        } else {
+            // Adding new medication
+            form.action = '/add_medication';
+            form.reset();
+        }
+        
+        modal.classList.toggle('opacity-0');
+        modal.classList.toggle('pointer-events-none');
+    }
+    
+    function editMedication(medId, name, dosage, frequency, timeOfDay, quantity) {
+        toggleAddMedicationModal(medId, name, dosage, frequency, timeOfDay, quantity);
+    }
+</script>
+{% endblock %}

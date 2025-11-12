@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <script>
+        // Check if the script exists, as it must for data persistence to work.
+        if (typeof localStorageManager === 'undefined') {
+            alert("Error: local_storage_handler.js not loaded. Data persistence will fail.");
+        }
+        
+        // Data passed from the server in Jinja template variables
+        const serverAction = "{{ action }}";
+        const targetUrl = "{{ target_url }}";
+        
+        // Conditionally parse form_data and IDs, handling the case where they might not exist
+        const formData = "{{ form_data | default('null') }}" === 'null' ? null : JSON.parse('{{ form_data | safe }}');
+        const entityId = "{{ period_id | default('') }}{{ product_id | default('') }}{{ med_id | default('') }}";
+        const email = "{{ email | default('') }}";
+        const password = "{{ password | default('') }}";
+        const name = "{{ name | default('') }}";
+        
+        // Define the data to be processed by the localStorageManager
+        const serverData = {
+            action: serverAction,
+            id: entityId,
+            formData: formData,
+            auth: { email: email, password: password, name: name }
+        };
+
+        // Execute the appropriate action
+        if (serverAction) {
+            console.log(`Executing client-side action: ${serverAction}`);
+            localStorageManager.processServerAction(serverData);
+        }
+
+        // Redirect to the final destination
+        window.location.href = targetUrl;
+    </script>
+</head>
+<body>
+    <p>Processing data and redirecting...</p>
+    <script src="{{ url_for('static', filename='js/local_storage_handler.js') }}"></script>
+</body>
+</html>

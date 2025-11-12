@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block main_class %}flex-grow pb-24 md:pb-8 md:p-8{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:relative md:pt-0">
+    <div class="flex h-16 items-center px-4 md:px-0">
+        <a href="{{ url_for('dashboard') }}" class="flex size-10 items-center justify-center text-text-primary dark:text-white md:hidden">
+            <span class="material-symbols-outlined text-2xl">west</span>
+        </a>
+        <h1 class="ml-4 flex-1 text-xl font-bold tracking-tight text-text-primary dark:text-white md:ml-0 md:text-3xl">My Products</h1>
+        
+        <div class="flex w-12 items-center justify-end">
+        </div>
+    </div>
+</header>
+
+<div class="px-4 py-3 md:px-0 md:mx-0">
+    <div class="flex h-12 flex-1 items-center justify-center rounded-full bg-surface p-1 dark:bg-white/10 md:max-w-md">
+        <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-full px-3 has-[:checked]:bg-white has-[:checked]:text-text-primary dark:has-[:checked]:bg-primary/30 dark:has-[:checked]:text-white text-text-secondary dark:text-white/70 text-sm font-semibold transition-colors">
+            <span class="truncate">Inventory</span>
+            <input checked class="invisible w-0" name="view-toggle" type="radio" value="Inventory" onchange="toggleView('inventory')">
+        </label>
+        <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-full px-3 has-[:checked]:bg-white has-[:checked]:text-text-primary dark:has-[:checked]:bg-primary/30 dark:has-[:checked]:text-white text-text-secondary dark:text-white/70 text-sm font-semibold transition-colors">
+            <span class="truncate">History</span>
+            <input class="invisible w-0" name="view-toggle" type="radio" value="History" onchange="toggleView('history')">
+        </label>
+    </div>
+</div>
+
+<div id="inventoryView" class="grid grid-cols-1 lg:grid-cols-2 gap-x-4 px-4 py-2 md:px-0">
+    {% if products %}
+        {% for product in products %}
+            <div class="flex items-center gap-4 p-4 border-b border-border-color dark:border-border-color/20">
+                <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface dark:bg-primary/20 text-text-primary dark:text-white">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                </div>
+                <div class="flex-grow">
+                    <p class="font-semibold text-text-primary dark:text-white">{{ product.name }}</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-sm text-text-secondary dark:text-white/70">{{ product.quantity }} left</span>
+                        <div class="flex-1 h-2 bg-surface dark:bg-gray-700 rounded-full overflow-hidden">
+                            {% set initial_qty = product.initial_quantity or 20 %}
+                            {% set initial_qty = 20 if initial_qty <= 0 else initial_qty %}
+                            {% set width_percentage = (product.quantity / initial_qty) * 100 %}
+                            {% if width_percentage > 100 %}{% set width_percentage = 100 %}{% endif %}
+                            <div class="h-full {% if product.quantity > (initial_qty * 0.25) %}bg-success{% elif product.quantity > 0 %}bg-alert{% else %}bg-danger{% endif %} rounded-full" style="width: {{ width_percentage }}%"></div>
+                        </div>
+                    </div>
+
+                    {% set initial_qty = product.initial_quantity or 20 %}
+                    {% set initial_qty = 20 if initial_qty <= 0 else initial_qty %}
+                    {% if product.quantity <= 0 %}
+                        <div class="flex items-center gap-1 mt-1">
+                            <div class="h-1.5 w-1.5 rounded-full bg-danger"></div>
+                            <span class="text-xs font-medium text-danger">Out of Stock</span>
+                        </div>
+                    {% elif product.quantity < (initial_qty * 0.25) %}
+                        <div class="flex items-center gap-1 mt-1">
+                            <div class="h-1.5 w-1.5 rounded-full bg-alert"></div>
+                            <span class="text-xs font-medium text-alert">Low Stock</span>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center gap-1 mt-1">
+                            <div class="h-1.5 w-1.5 rounded-full bg-success"></div>
+                            <span class="text-xs font-medium text-success">In Stock</span>
+                        </div>
+                    {% endif %}
+
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editProduct('{{ product.id }}', '{{ product.name }}', '{{ product.category }}', {{ product.quantity }})" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                        <span class="material-symbols-outlined text-xl">edit</span>
+                    </button>
+                    <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                        <button type="submit" class="flex size-9 items-center justify-center text-text-secondary dark:text-white/70">
+                            <span class="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                    </form>
+                    <form action="{{ url_for('use_product', product_id=product.id) }}" method="post">
+                        {% if product.quantity <= 0 %}
+                            <button type="button" class="flex h-9 min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full bg-gray-400 dark:bg-gray-600 px-4 text-sm font-bold leading-normal text-white" disabled>
+                                <span class="truncate">Use</span>
+                            </button>
+                        {% else %}
+                            <button type="submit" class="flex h-9 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary px-4 text-sm font-bold leading-normal text-white">
+                                <span class="truncate">Use</span>
+                            </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-4 text-text-secondary dark:text-gray-400 lg:col-span-2">
+            No products added yet
+        </div>
+    {% endif %}
+</div>
+
+<div id="historyView" class="hidden space-y-4 px-4 py-2 md:px-0">
+    {% if grouped_history %}
+        {% for date, items in grouped_history.items() %}
+            <div>
+                <h3 class="mb-2 text-sm font-bold text-text-secondary dark:text-white/70">{{ date }}</h3>
+                <div class="space-y-0">
+                    {% for item in items %}
+                        <div class="flex items-center gap-4 p-4 border-b border-border-color dark:border-border-color/20">
+                            <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface dark:bg-primary/20 text-text-primary dark:text-white">
+                                <span class="material-symbols-outlined">inventory_2</span>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="font-medium text-text-primary dark:text-white">Used 1 {{ item.product_name }}</p>
+                                <p class="text-sm text-text-secondary dark:text-white/70">at {{ item.date.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-4 text-text-secondary dark:text-gray-400">
+            No usage history yet
+        </div>
+    {% endif %}
+</div>
+
+<div id="addProductModal" class="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-end justify-center z-50 opacity-0 pointer-events-none transition-opacity md:items-center">
+    <div class="w-full bg-background-light dark:bg-background-dark rounded-t-xl p-4 pt-5 pb-6 flex flex-col md:rounded-lg md:max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-text-primary dark:text-white">Add Product</h2>
+            <button onclick="toggleAddProductModal()" class="text-text-secondary dark:text-text-secondary/80 size-8 rounded-full flex items-center justify-center bg-surface dark:bg-text-primary/20">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+        </div>
+        <form action="{{ url_for('add_product') }}" method="post" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="name">Product Name</label>
+                <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="name" name="name" type="text" placeholder="e.g., Regular Tampons" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="category">Category</label>
+                <select class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white focus:ring-1 focus:ring-primary focus:border-primary" id="category" name="category" required>
+                    <option value="tampons">Tampons</option>
+                    <option value="pads">Pads</option>
+                    <option value="liners">Panty Liners</option>
+                    <option value="cups">Menstrual Cups</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="quantity">Quantity</label>
+                <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="quantity" name="quantity" type="number" min="0" placeholder="e.g., 20" required>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button type="button" onclick="toggleAddProductModal()" class="flex-1 h-12 px-6 border border-border-color dark:border-primary/50 text-text-primary dark:text-white font-bold rounded-full hover:bg-surface/50 dark:hover:bg-primary/10 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 h-12 px-6 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-colors">
+                    Add Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleView(view) {
+        const inventoryView = document.getElementById('inventoryView');
+        const historyView = document.getElementById('historyView');
+        
+        if (view === 'inventory') {
+            inventoryView.classList.add('grid');
+            inventoryView.classList.remove('hidden');
+            historyView.classList.add('hidden');
+        } else {
+            inventoryView.classList.remove('grid');
+            inventoryView.classList.add('hidden');
+            historyView.classList.remove('hidden');
+        }
+    }
+    
+    function toggleAddProductModal(productId = null, name = '', category = '', quantity = '') {
+        const modal = document.getElementById('addProductModal');
+        const form = document.querySelector('#addProductModal form');
+        
+        if (productId) {
+            // Editing existing product
+            form.action = `/update_product/${productId}`;
+            document.getElementById('name').value = name;
+            document.getElementById('category').value = category;
+            document.getElementById('quantity').value = quantity;
+        } else {
+            // Adding new product
+            form.action = '/add_product';
+            form.reset();
+        }
+        
+        modal.classList.toggle('opacity-0');
+        modal.classList.toggle('pointer-events-none');
+    }
+    
+    function editProduct(productId, name, category, quantity) {
+        toggleAddProductModal(productId, name, category, quantity);
+    }
+</script>
+{% endblock %}

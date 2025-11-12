@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block main_class %}px-4 py-6 overflow-y-auto pb-24 md:pb-8 md:p-8{% endblock %}
+
+{% block content %}
+<header class="flex items-center bg-background-light dark:bg-background-dark pb-2 justify-between sticky top-0 z-10 border-b border-border-color/50 dark:border-border-color/10 md:hidden">
+    <div class="flex items-center justify-start pl-4">
+        <img src="https://i.ibb.co/zhCdyBd1/Femininelogo-removebg-preview.png" alt="FeminineCare Logo" class="h-9">
+    </div>
+    <div class="flex w-12 items-center justify-end pr-2">
+        <a href="{{ url_for('profile') }}" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-text-primary dark:text-gray-200 gap-2 text-base font-bold leading-normal min-w-0 p-0">
+            <span class="material-symbols-outlined">settings</span>
+        </a>
+    </div>
+</header>
+
+<div class="pb-24 md:pb-0">
+    <h2 class="text-text-primary dark:text-gray-100 text-[32px] font-bold leading-tight tracking-tight text-left pb-6 pt-4 md:pt-0">{{ greeting }}, {{ user.name }}</h2>
+
+    <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+        
+        <div class="lg:col-span-2 space-y-8">
+            <div class="flex flex-col items-stretch justify-between gap-0">
+                <div class="relative w-full h-52 md:h-96 bg-cover bg-center bg-no-repeat rounded-lg overflow-hidden" style='background-image: url("https://i.ibb.co/6VpHYTf/image.png");'>
+                    <div class="absolute inset-0 bg-gradient-to-l from-primary/30 to-transparent"></div>
+                </div>
+                <div class="flex flex-col gap-4 p-6">
+                    <div class="flex flex-row gap-6 items-center">
+                        <div class="flex flex-col gap-2 flex-grow">
+                            <p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Menstrual Cycle</p>
+                            <p class="text-text-primary dark:text-gray-100 text-base font-bold leading-tight">Day {{ cycle_stats.current_day }} of your cycle</p>
+                            <p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">
+                                {% if cycle_stats.days_until_next_period is not none %}
+                                    Your next period starts in {{ cycle_stats.days_until_next_period }} days.
+                                {% else %}
+                                    No upcoming period data available.
+                                {% endif %}
+                            </p>
+                            <p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">
+                                {% if cycle_stats.days_until_ovulation is not none %}
+                                    Your ovulation is likely in {{ cycle_stats.days_until_ovulation }} days.
+                                {% else %}
+                                    No ovulation data available.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <img src="https://i.ibb.co/NgMLds0S/menstrual-cycle.jpg" alt="Menstrual Cycle" class="w-32 h-32 object-cover rounded-lg">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <a href="{{ url_for('period') }}" class="flex items-center justify-center gap-2 self-start text-primary dark:text-primary/90 text-sm font-bold leading-normal bg-transparent border-none">
+                            <span class="material-symbols-outlined text-lg">add</span>
+                            <span>Add Period</span>
+                        </a>
+                        <button id="mobile-calendar-toggle" type="button" class="flex lg:hidden items-center justify-center gap-2 self-start text-primary dark:text-primary/90 text-sm font-bold leading-normal bg-transparent border-none">
+                            <span class="material-symbols-outlined text-lg">calendar_month</span>
+                            <span>View Calendar</span>
+                        </button>
+                    </div>
+
+                    {% set weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
+                    {% set calendar_html %}
+                    <div class="mt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-bold text-text-primary dark:text-white">{{ today.strftime('%B %Y') }}</h3>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center">
+                            {% for day in weekdays %}
+                                <div class="text-xs font-bold text-text-secondary dark:text-gray-400">{{ day }}</div>
+                            {% endfor %}
+                            
+                            {% for _ in range(month_calendar_data.start_day_offset) %}
+                                <div></div>
+                            {% endfor %}
+
+                            {% for day in range(1, month_calendar_data.days_in_month + 1) %}
+                                <div class="flex items-center justify-center size-9 rounded-full 
+                                    {% if day == today.day %}
+                                        bg-primary text-white font-bold
+                                    {% else %}
+                                        text-text-primary dark:text-gray-200
+                                    {% endif %}
+                                ">
+                                    {{ day }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endset %}
+                    <div class="hidden lg:block">
+                        {{ calendar_html | safe }}
+                    </div>
+
+                    <div id="mobile-calendar-view" class="hidden lg:hidden">
+                        {{ calendar_html | safe }}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-1 space-y-8">
+
+            <div>
+                <h3 class="text-text-primary dark:text-gray-100 text-xl font-bold p-6 pb-4">Upcoming Medication</h3>
+                {% if upcoming_meds %}
+                    <div class="p-6 pt-0">
+                        <div class="flex items-center justify-between rounded-lg bg-surface dark:bg-white/5 p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20">
+                                    <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">pill</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <p class="text-text-primary dark:text-gray-100 font-bold leading-tight">{{ upcoming_meds[0].name }}</p>
+                                    <p class="text-text-secondary dark:text-gray-400 text-sm leading-normal">{{ upcoming_meds[0].time_until }}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-xs font-medium text-text-secondary dark:text-gray-400">{{ upcoming_meds[0].quantity }} left</span>
+                                        <div class="flex-1 h-1.5 bg-border-color dark:bg-gray-700 rounded-full overflow-hidden w-24">
+                                            {% set initial_qty = upcoming_meds[0].initial_quantity or 30 %}
+                                            {% set initial_qty = 30 if initial_qty <= 0 else initial_qty %}
+                                            {% set width_percentage = (upcoming_meds[0].quantity / initial_qty) * 100 %}
+                                            {% if width_percentage > 100 %}{% set width_percentage = 100 %}{% endif %}
+                                            <div class="h-full {% if upcoming_meds[0].quantity > (initial_qty * 0.25) %}bg-success{% elif upcoming_meds[0].quantity > 0 %}bg-alert{% else %}bg-danger{% endif %} rounded-full" style="width: {{ width_percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form action="{{ url_for('take_medication', med_id=upcoming_meds[0].id) }}" method="post">
+                                <input type="hidden" name="source" value="dashboard">
+                                {% if upcoming_meds[0].quantity <= 0 %}
+                                    <button type="button" class="flex min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full h-9 px-5 bg-gray-400 dark:bg-gray-600 text-white text-sm font-medium leading-normal" disabled>
+                                        <span class="truncate">Out of Stock</span>
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-9 px-5 bg-primary text-white text-sm font-medium leading-normal">
+                                        <span class="truncate">Take Now</span>
+                                    </button>
+                                {% endif %}
+                            </form>
+                            </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 pb-6 text-text-secondary dark:text-gray-400">
+                        No upcoming medications
+                    </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <section>
+                    <div class="flex items-center justify-between p-6 pb-4">
+                        <h3 class="text-text-primary dark:text-gray-100 text-xl font-bold">My Supplies</h3>
+                        <a href="{{ url_for('products') }}" class="text-primary dark:text-primary/90 text-sm font-bold">Manage</a>
+                    </div>
+                    
+                    {% if supplies %}
+                        <div class="space-y-4 p-6 pt-0">
+                            {% for supply in supplies %}
+                                <div class="p-4 rounded-lg bg-surface dark:bg-white/5 flex items-center justify-between">
+                                    <div class="flex-1 pr-4">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <p class="font-bold text-text-primary dark:text-gray-200">{{ supply.name }}</p>
+                                            <p class="text-sm font-medium {{ supply.status_class }}">{{ supply.status }}</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm text-text-secondary dark:text-gray-400">{{ supply.quantity }} left</span>
+                                            <div class="flex-1 h-2.5 bg-border-color dark:bg-gray-700 rounded-full overflow-hidden">
+                                                {% set initial_qty = supply.initial_quantity or 20 %}
+                                                {% set initial_qty = 20 if initial_qty <= 0 else initial_qty %}
+                                                {% set width_percentage = (supply.quantity / initial_qty) * 100 %}
+                                                {% if width_percentage > 100 %}{% set width_percentage = 100 %}{% endif %}
+                                                <div class="{{ supply.status_class }} h-2.5 rounded-full" style="width: {{ width_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <form action="{{ url_for('use_product', product_id=supply.id) }}" method="post">
+                                        <input type="hidden" name="source" value="dashboard">
+                                        {% if supply.quantity <= 0 %}
+                                            <button type="button" class="flex min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full h-9 px-5 bg-gray-400 dark:bg-gray-600 text-white text-sm font-medium leading-normal" disabled>
+                                                <span class="truncate">Out of Stock</span>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-9 px-5 bg-primary text-white text-sm font-medium leading-normal">
+                                                <span class="truncate">Use</span>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                    </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 pb-6 text-text-secondary dark:text-gray-400">
+                            No supplies added yet
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+        </div>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>FeminineCare Tracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f04299",
+                        "background-light": "#fcf8fa",
+                        "background-dark": "#221019",
+                        "text-primary": "#1b0d14",
+                        "text-secondary": "#9a4c73",
+                        "border-color": "#e7cfdb",
+                        "card-background": "#ffffff",
+                        "surface": "#f3e7ed",
+                        "alert": "#ff8c42",
+                        "success": "#2e7d32",
+                        "danger": "#d32f2f"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1.5rem",
+                        "xl": "2rem",
+                        "full": "9999px"
+                    },
+                    width: {
+                        '20': '5rem', // 80px for collapsed sidebar
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+    <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden md:flex-row">
+        
+        {% if 'user_id' in session %}
+        <nav id="desktop-sidebar" class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:border-r md:border-border-color/50 dark:md:border-border-color/20 md:bg-background-light dark:md:bg-background-dark md:p-4">
+            
+            <div id="desktop-sidebar-header" class="flex items-center gap-3 p-4 mb-4">
+                <img src="https://i.ibb.co/zhCdyBd1/Femininelogo-removebg-preview.png" alt="FeminineCare Logo" class="h-10">
+            </div>
+
+            <div class="flex flex-col gap-2 flex-1">
+                <a class="flex items-center gap-3 rounded-lg px-4 py-3 {% if request.endpoint == 'dashboard' %}bg-surface text-primary dark:bg-primary/20{% else %}text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5{% endif %}" href="{{ url_for('dashboard') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'dashboard' %}filled{% endif %}">dashboard</span>
+                    <span class="sidebar-label text-sm font-bold">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-4 py-3 {% if request.endpoint == 'period' %}bg-surface text-primary dark:bg-primary/20{% else %}text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5{% endif %}" href="{{ url_for('period') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'period' %}filled{% endif %}">water_drop</span>
+                    <span class="sidebar-label text-sm font-bold">Period</span>
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-4 py-3 {% if request.endpoint == 'products' %}bg-surface text-primary dark:bg-primary/20{% else %}text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5{% endif %}" href="{{ url_for('products') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'products' %}filled{% endif %}">inventory_2</span>
+                    <span class="sidebar-label text-sm font-bold">Inventory</span>
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-4 py-3 {% if request.endpoint == 'medications' %}bg-surface text-primary dark:bg-primary/20{% else %}text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5{% endif %}" href="{{ url_for('medications') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'medications' %}filled{% endif %}">pill</span>
+                    <span class="sidebar-label text-sm font-bold">Medication</span>
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-4 py-3 {% if request.endpoint == 'profile' %}bg-surface text-primary dark:bg-primary/20{% else %}text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5{% endif %}" href="{{ url_for('profile') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'profile' %}filled{% endif %}">settings</span>
+                    <span class="sidebar-label text-sm font-bold">Settings</span>
+                </a>
+            </div>
+            
+            <button id="sidebar-toggle" class="flex items-center gap-3 rounded-lg px-4 py-3 text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5 w-full">
+                <span id="sidebar-toggle-icon" class="material-symbols-outlined">menu_open</span>
+                <span class="sidebar-label text-sm font-bold">Collapse</span>
+            </button>
+            
+            <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-text-secondary dark:text-gray-400 hover:bg-surface/50 dark:hover:bg-white/5" href="{{ url_for('logout') }}">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="sidebar-label text-sm font-bold">Log Out</span>
+            </a>
+        </nav>
+        {% endif %}
+
+        <main id="main-content" class="flex-1 {% if 'user_id' in session %}md:ml-64{% endif %} {% block main_class %}pb-24 md:pb-8 md:p-8{% endblock %} md:h-screen md:overflow-y-auto main-content-desktop">
+            {% block header %}{% endblock %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="fixed top-4 right-4 z-50 md:top-6 md:right-8 space-y-2" id="flash-message-container">
+                        {% for category, message in messages %}
+                            <div class="px-4 py-3 rounded-lg {% if category == 'success' %}bg-green-500 text-white{% elif category == 'danger' %}bg-red-500 text-white{% elif category == 'warning' %}bg-alert text-white{% else %}bg-blue-500 text-white{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if user_settings.notification_sounds %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const audio = document.getElementById('notification-sound');
+                            if (audio) {
+                                audio.play().catch(e => {
+                                    console.warn("Could not play notification sound (browser policy may prevent autoplay):", e);
+                                });
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </main>
+        
+        {% if 'user_id' in session %}
+        <nav class="fixed bottom-0 left-0 right-0 z-20 bg-background-light dark:bg-background-dark border-t border-border-color/50 dark:border-border-color/20 md:hidden">
+            <div class="flex justify-around items-center h-20">
+                <a class="flex flex-col items-center justify-center gap-1 {% if request.endpoint == 'dashboard' %}text-primary dark:text-primary{% else %}text-text-secondary dark:text-gray-400{% endif %}" href="{{ url_for('dashboard') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'dashboard' %}filled{% endif %}">dashboard</span>
+                    <span class="text-xs {% if request.endpoint == 'dashboard' %}font-bold{% else %}font-medium{% endif %}">Dashboard</span>
+                </a>
+                <a class="flex flex-col items-center justify-center gap-1 {% if request.endpoint == 'period' %}text-primary dark:text-primary{% else %}text-text-secondary dark:text-gray-400{% endif %}" href="{{ url_for('period') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'period' %}filled{% endif %}">water_drop</span>
+                    <span class="text-xs {% if request.endpoint == 'period' %}font-bold{% else %}font-medium{% endif %}">Period</span>
+                </a>
+                
+                <a class="flex flex-col items-center justify-center gap-1 {% if request.endpoint == 'products' %}text-primary dark:text-primary{% else %}text-text-secondary dark:text-gray-400{% endif %}" href="{{ url_for('products') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'products' %}filled{% endif %}">inventory_2</span>
+                    <span class="text-xs {% if request.endpoint == 'products' %}font-bold{% else %}font-medium{% endif %}">Inventory</span>
+                </a>
+
+                <a class="flex flex-col items-center justify-center gap-1 {% if request.endpoint == 'medications' %}text-primary dark:text-primary{% else %}text-text-secondary dark:text-gray-400{% endif %}" href="{{ url_for('medications') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'medications' %}filled{% endif %}">pill</span>
+                    <span class="text-xs {% if request.endpoint == 'medications' %}font-bold{% else %}font-medium{% endif %}">Medication</span>
+                </a>
+                <a class="flex flex-col items-center justify-center gap-1 {% if request.endpoint == 'profile' %}text-primary dark:text-primary{% else %}text-text-secondary dark:text-gray-400{% endif %}" href="{{ url_for('profile') }}">
+                    <span class="material-symbols-outlined {% if request.endpoint == 'profile' %}filled{% endif %}">settings</span>
+                    <span class="text-xs {% if request.endpoint == 'profile' %}font-bold{% else %}font-medium{% endif %}">Settings</span>
+                </a>
+            </div>
+        </nav>
+        {% endif %}
+    </div>
+    
+    {% if 'user_id' in session and request.endpoint in ['period', 'products', 'medications'] %}
+        
+        {% set onclick_action = '' %}
+        {% if request.endpoint == 'period' %}
+            {% set onclick_action = 'toggleAddPeriodModal()' %}
+        {% elif request.endpoint == 'products' %}
+            {% set onclick_action = 'toggleAddProductModal()' %}
+        {% elif request.endpoint == 'medications' %}
+            {% set onclick_action = 'toggleAddMedicationModal()' %}
+        {% endif %}
+
+        <button onclick="{{ onclick_action }}" 
+                class="fixed z-40 right-6 bottom-24 md:bottom-8 flex items-center justify-center size-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-transform active:scale-95">
+            <span class="material-symbols-outlined text-3xl">add</span>
+        </button>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+</body>
+</html>

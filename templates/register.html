@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex min-h-screen w-full">
+    <div class="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center lg:p-8">
+        <div class="w-full h-full flex items-center justify-center">
+            <img 
+                src="https://i.ibb.co/Y7kxP6jd/girl-preparing-pads-puberty-health-education.png" 
+                alt="Girl preparing pads for puberty health education"
+                class="w-full h-full object-contain max-w-full max-h-full"
+            >
+        </div>
+    </div>
+
+    <div class="flex-1 flex items-center justify-center p-4 lg:p-8">
+        <div class="w-full max-w-md">
+            
+            <div class="flex flex-col items-center pb-6">
+                <img src="https://i.ibb.co/zhCdyBd1/Femininelogo-removebg-preview.png" alt="FeminineCare Logo" class="h-12">
+            </div>
+            <div class="flex flex-col items-center text-center mb-6">
+                <h1 class="text-3xl font-bold text-[#1b0d14] dark:text-white">Create Account</h1>
+                <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Start your wellness journey</p>
+            </div>
+            
+            <form method="post" class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-[#1b0d14] dark:text-neutral-300" for="full-name">Full Name</label>
+                    <input class="mt-1 block w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-background-light dark:bg-background-dark p-3 text-sm text-[#1b0d14] dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:border-primary focus:ring-primary" id="full-name" name="full-name" placeholder="Enter your full name" type="text" required>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-[#1b0d14] dark:text-neutral-300" for="email">Email</label>
+                    <input class="mt-1 block w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-background-light dark:bg-background-dark p-3 text-sm text-[#1b0d14] dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:border-primary focus:ring-primary" id="email" name="email" placeholder="Enter your email" type="email" required>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-[#1b0d14] dark:text-neutral-300" for="password">Password</label>
+                    <div class="relative mt-1">
+                        <input class="block w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-background-light dark:bg-background-dark p-3 pr-12 text-sm text-[#1b0d14] dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:border-primary focus:ring-primary" id="password" name="password" placeholder="Create a password" type="password" required>
+                        <span class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-4 text-neutral-500 dark:text-neutral-400" onclick="togglePassword('password')">
+                            <span class="material-symbols-outlined text-xl" id="password-icon">visibility_off</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-[#1b0d14] dark:text-neutral-300" for="confirm-password">Confirm Password</label>
+                    <div class="relative mt-1">
+                        <input class="block w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-background-light dark:bg-background-dark p-3 pr-12 text-sm text-[#1b0d14] dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:border-primary focus:ring-primary" id="confirm-password" name="confirm-password" placeholder="Confirm your password" type="password" required>
+                        <span class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-4 text-neutral-500 dark:text-neutral-400" onclick="togglePassword('confirm-password')">
+                            <span class="material-symbols-outlined text-xl" id="confirm-password-icon">visibility_off</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="pt-2">
+                    <button class="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" type="submit">
+                        Register
+                    </button>
+                </div>
+                
+                <p class="text-center text-sm text-neutral-600 dark:text-neutral-400">
+                    Already have an account?
+                    <a class="font-bold text-primary hover:underline" href="{{ url_for('login') }}">Log In</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = document.getElementById(fieldId + '-icon');
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.textContent = 'visibility';
+        } else {
+            field.type = 'password';
+            icon.textContent = 'visibility_off';
+        }
+    }
+</script>
+{% endblock %}

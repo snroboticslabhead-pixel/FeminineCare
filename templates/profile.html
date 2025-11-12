@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block main_class %}flex flex-col gap-6 p-4 pt-2 pb-28 md:pb-8 md:p-8{% endblock %}
+
+{% block content %}
+<header class="flex items-center bg-background-light p-4 pb-2 -mx-4 justify-between sticky top-0 z-10 md:bg-transparent md:p-0 md:mx-0 md:relative md:pt-0">
+    <div class="flex size-12 shrink-0 items-center justify-start text-text-primary">
+        <a href="{{ url_for('dashboard') }}" class="flex items-center justify-center p-0 text-text-primary dark:text-white md:hidden">
+            <span class="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+        </a>
+    </div>
+    <h1 class="text-text-primary dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center md:text-left md:text-3xl">Profile & Settings</h1>
+    <div class="flex size-12 shrink-0 items-center"></div> 
+</header>
+
+<div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+    
+    <section class="flex w-full flex-col items-center gap-4 py-4">
+        <div class="relative">
+            <div id="profileImageContainer" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32" data-alt="Profile picture of {{ user.name }}" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBzmNyTF8Q9JeXrxy1lZyFoLTK07h473ehr2uUvdykqumL__4upKrjnsWTgzvJck0_lHDZhbi2YOGiBeXN4qYpZu06VKhju-Hy1YpRIb8katConC0vafPVL1FFP9zg1vvyOMwGYIqGqcilT37b__oLoxYng0ogDk8-PDqwyQvEFdHlajWIlLZH5W4WLN1TDo8OPYOpMn66eGmdfhPI0tAG5xqcvg5W7t5Ha6y8zeLJAzNB-_A4jwn_ioSc0b450hTUu53QMi6Be4qY");'></div>
+            <button id="editProfileImageBtn" onclick="toggleProfileImageEdit()" class="absolute bottom-0 right-0 flex items-center justify-center size-9 bg-primary text-white rounded-full border-2 border-white">
+                <span class="material-symbols-outlined !text-lg">edit</span>
+            </button>
+            
+            <div id="profileImageEditForm" class="hidden absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                <form id="profileImageForm" class="flex flex-col items-center gap-3">
+                    <input type="file" id="profileImageInput" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('profileImageInput').click()" class="flex items-center justify-center size-12 bg-primary text-white rounded-full">
+                        <span class="material-symbols-outlined">photo_camera</span>
+                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="saveProfileImage()" class="px-3 py-1 bg-primary text-white rounded-full text-sm">Save</button>
+                        <button type="button" onclick="toggleProfileImageEdit()" class="px-3 py-1 bg-gray-500 text-white rounded-full text-sm">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="profileInfoDisplay" class="flex flex-col items-center justify-center">
+            <p class="text-text-primary dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">{{ user.name }}</p>
+            <p class="text-text-secondary dark:text-gray-400 text-base font-normal leading-normal text-center">{{ user.email }}</p>
+            <button id="editProfileBtn" onclick="toggleProfileEdit()" class="mt-3 flex items-center justify-center gap-1 text-primary text-sm font-medium">
+                <span class="material-symbols-outlined text-lg">edit</span>
+                <span>Edit Profile</span>
+            </button>
+        </div>
+        
+        <div id="profileEditForm" class="hidden w-full max-w-md">
+            <form id="profileForm" action="{{ url_for('update_profile') }}" method="post" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="name">Full Name</label>
+                    <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="name" name="name" type="text" value="{{ user.name }}" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary dark:text-text-secondary/80 mb-2" for="email">Email Address</label>
+                    <input class="w-full bg-surface dark:bg-text-primary/10 border-border-color dark:border-primary/20 rounded-lg p-3 text-text-primary dark:text-white placeholder:text-text-secondary/60 focus:ring-1 focus:ring-primary focus:border-primary" id="email" name="email" type="email" value="{{ user.email }}" required>
+                </div>
+                <div class="flex gap-3 mt-2">
+                    <button type="submit" class="flex-1 h-12 px-6 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-colors">
+                        Save Changes
+                    </button>
+                    <button type="button" onclick="toggleProfileEdit()" class="flex-1 h-12 px-6 border border-border-color dark:border-primary/50 text-text-primary dark:text-white font-bold rounded-full hover:bg-surface/50 dark:hover:bg-primary/10 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+    <form id="settingsForm" action="{{ url_for('update_settings') }}" method="post" class="flex flex-col gap-6">
+        
+        <section class="flex flex-col gap-2">
+            <h2 class="text-text-primary dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-2">Notification Settings</h2>
+            <div class="flex flex-col divide-y divide-border-color dark:divide-white/20">
+                <div class="flex items-center gap-4 py-3 justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                            <span class="material-symbols-outlined">calendar_month</span>
+                        </div>
+                        <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Cycle/Period reminders</p>
+                    </div>
+                    <div class="shrink-0">
+                        <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-surface dark:bg-white/10 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+                            <div class="h-full w-[27px] rounded-full bg-white transition-transform"></div>
+                            <input type="checkbox" name="cycle_reminders" class="invisible absolute" {% if user.settings and user.settings.cycle_reminders %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 py-3 justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                            <span class="material-symbols-outlined">pill</span>
+                        </div>
+                        <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Medication reminders</p>
+                    </div>
+                    <div class="shrink-0">
+                        <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-surface dark:bg-white/10 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+                            <div class="h-full w-[27px] rounded-full bg-white transition-transform"></div>
+                            <input type="checkbox" name="medication_reminders" class="invisible absolute" {% if user.settings and user.settings.medication_reminders %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 py-3 justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                            <span class="material-symbols-outlined">shopping_bag</span>
+                        </div>
+                        <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Supply alerts</p>
+                    </div>
+                    <div class="shrink-0">
+                        <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-surface dark:bg-white/10 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+                            <div class="h-full w-[27px] rounded-full bg-white transition-transform"></div>
+                            <input type="checkbox" name="supply_alerts" class="invisible absolute" {% if user.settings and user.settings.supply_alerts %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 py-3 justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                            <span class="material-symbols-outlined">notifications_active</span>
+                        </div>
+                        <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Notification sounds</p>
+                    </div>
+                    <div class="shrink-0">
+                        <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-surface dark:bg-white/10 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+                            <div class="h-full w-[27px] rounded-full bg-white transition-transform"></div>
+                            <input type="checkbox" name="notification_sounds" class="invisible absolute" {% if user.settings and user.settings.notification_sounds %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-2">
+            <h2 class="text-text-primary dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-2">App Preferences</h2>
+            <div class="flex items-center gap-4 py-3 justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                        <span class="material-symbols-outlined">lock</span>
+                    </div>
+                    <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Passcode Lock</p>
+                </div>
+                <div class="shrink-0">
+                    <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-surface dark:bg-white/10 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+                        <div class="h-full w-[27px] rounded-full bg-white transition-transform"></div>
+                        <input type="checkbox" name="passcode_lock" class="invisible absolute" {% if user.settings and user.settings.passcode_lock %}checked{% endif %}>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-2">
+            <h2 class="text-text-primary dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-2">Support & Legal</h2>
+            <div class="flex flex-col divide-y divide-border-color dark:divide-white/20">
+                
+                <div>
+                    <button type="button" class="support-legal-toggle flex w-full items-center gap-4 py-3 justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                                <span class="material-symbols-outlined">help_outline</span>
+                            </div>
+                            <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Help Center</p>
+                        </div>
+                        <div class="shrink-0 text-text-secondary group-hover:text-primary">
+                            <span class="material-symbols-outlined support-legal-icon">chevron_right</span>
+                        </div>
+                    </button>
+                    <div class="support-legal-content pl-14 pr-6 text-sm text-text-secondary dark:text-gray-400">
+                        <p>Find answers to common questions, tutorials, and contact our support team for personal assistance.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="button" class="support-legal-toggle flex w-full items-center gap-4 py-3 justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                                <span class="material-symbols-outlined">gavel</span>
+                            </div>
+                            <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Terms of Service</p>
+                        </div>
+                        <div class="shrink-0 text-text-secondary group-hover:text-primary">
+                            <span class="material-symbols-outlined support-legal-icon">chevron_right</span>
+                        </div>
+                    </button>
+                    <div class="support-legal-content pl-14 pr-6 text-sm text-text-secondary dark:text-gray-400">
+                        <p>Please read our Terms of Service. These terms govern your use of the FeminineCare Tracker application.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="button" class="support-legal-toggle flex w-full items-center gap-4 py-3 justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="text-primary flex items-center justify-center rounded-full bg-surface dark:bg-white/5 shrink-0 size-10">
+                                <span class="material-symbols-outlined">shield</span>
+                            </div>
+                            <p class="text-text-primary dark:text-white text-base font-medium leading-normal flex-1 truncate">Privacy Policy</p>
+                        </div>
+                        <div class="shrink-0 text-text-secondary group-hover:text-primary">
+                            <span class="material-symbols-outlined support-legal-icon">chevron_right</span>
+                        </div>
+                    </button>
+                    <div class="support-legal-content pl-14 pr-6 text-sm text-text-secondary dark:text-gray-400">
+                        <p>Your privacy is important to us. Our policy details what data we collect and how we protect and use it.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-4 pt-4 pb-8">
+            <button type="submit" form="settingsForm" class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-base font-bold text-white transition-colors hover:bg-primary/90">
+                Save Settings
+            </button>
+            <a href="{{ url_for('logout') }}" class="flex w-full items-center justify-center gap-2 rounded-lg bg-transparent px-6 py-3 text-base font-bold text-text-primary dark:text-white border border-border-color dark:border-white/20 transition-colors hover:bg-surface/50">
+                Log Out
+            </a>
+            <button type="button" onclick="confirmDeleteAccount()" class="flex w-full items-center justify-center gap-2 rounded-lg bg-transparent px-6 py-3 text-base font-bold text-danger transition-colors hover:bg-danger/10">
+                Delete Account
+            </button>
+        </section>
+    </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleProfileEdit() {
+        const profileInfoDisplay = document.getElementById('profileInfoDisplay');
+        const profileEditForm = document.getElementById('profileEditForm');
+        
+        profileInfoDisplay.classList.toggle('hidden');
+        profileEditForm.classList.toggle('hidden');
+    }
+    
+    function toggleProfileImageEdit() {
+        const profileImageEditForm = document.getElementById('profileImageEditForm');
+        profileImageEditForm.classList.toggle('hidden');
+    }
+    
+    function saveProfileImage() {
+        const input = document.getElementById('profileImageInput');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profileImageContainer').style.backgroundImage = `url(${e.target.result})`;
+                toggleProfileImageEdit();
+                showNotification('Profile image updated successfully!', 'success');
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            toggleProfileImageEdit();
+        }
+    }
+    
+    function confirmDeleteAccount() {
+        if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+            // In a real application, this would make an API call to delete the account
+            showNotification('Account deletion would be processed here', 'info');
+        }
+    }
+</script>
+{% endblock %}

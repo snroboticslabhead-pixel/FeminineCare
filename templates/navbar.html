@@ -1,0 +1,61 @@
+<!-- navbar.html -->
+{% macro nav_item(url, icon, label) %}
+<a href="{{ url }}" class="nav-item group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 {% if request.path == url %}bg-white text-primary shadow-md{% else %}text-gray-700 hover:bg-white/50 hover:text-primary{% endif %}">
+    <span class="material-symbols-outlined text-2xl {% if request.path == url %}fill-1{% endif %}">{{ icon }}</span>
+    <span class="font-medium">{{ label }}</span>
+</a>
+{% endmacro %}
+
+<!-- Desktop Sidebar Navigation -->
+<div class="sidebar fixed left-0 top-0 h-screen w-64 bg-[#f8c8dc] shadow-lg z-30 flex flex-col p-4 transition-transform duration-300">
+    <div class="flex items-center gap-3 mb-8 mt-4 px-2">
+        <span class="material-symbols-outlined text-primary text-3xl">filter_vintage</span>
+        <h1 class="text-xl font-bold text-primary">FeminineCare</h1>
+    </div>
+    
+    <nav class="flex-1">
+        {{ nav_item(url_for('dashboard'), 'dashboard', 'Dashboard') }}
+        {{ nav_item(url_for('period'), 'water_drop', 'Period') }}
+        {{ nav_item(url_for('medications'), 'medication', 'Medication') }}
+        {{ nav_item(url_for('products'), 'inventory_2', 'Inventory') }}
+        {{ nav_item(url_for('profile'), 'settings', 'Settings') }}
+    </nav>
+    
+    <div class="mt-auto pt-4 border-t border-pink-300">
+        <div class="flex items-center gap-3 px-4 py-3">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">person</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-medium text-gray-800 truncate">{{ user.name if user else 'Guest' }}</p>
+                <p class="text-sm text-gray-600 truncate">{{ user.email if user else 'Not logged in' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-20 bg-[#f8c8dc] shadow-lg">
+    <div class="flex justify-around items-center h-16">
+        <a class="flex flex-col items-center justify-center gap-1 {% if request.path == url_for('dashboard') %}text-primary{% else %}text-gray-700{% endif %}" href="{{ url_for('dashboard') }}">
+            <span class="material-symbols-outlined {% if request.path == url_for('dashboard') %}fill-1{% endif %}">dashboard</span>
+            <span class="text-xs font-medium">Dashboard</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 {% if request.path == url_for('period') %}text-primary{% else %}text-gray-700{% endif %}" href="{{ url_for('period') }}">
+            <span class="material-symbols-outlined {% if request.path == url_for('period') %}fill-1{% endif %}">water_drop</span>
+            <span class="text-xs font-medium">Period</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 {% if request.path == url_for('medications') %}text-primary{% else %}text-gray-700{% endif %}" href="{{ url_for('medications') }}">
+            <span class="material-symbols-outlined {% if request.path == url_for('medications') %}fill-1{% endif %}">medication</span>
+            <span class="text-xs font-medium">Medication</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 {% if request.path == url_for('products') %}text-primary{% else %}text-gray-700{% endif %}" href="{{ url_for('products') }}">
+            <span class="material-symbols-outlined {% if request.path == url_for('products') %}fill-1{% endif %}">inventory_2</span>
+            <span class="text-xs font-medium">Inventory</span>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 {% if request.path == url_for('profile') %}text-primary{% else %}text-gray-700{% endif %}" href="{{ url_for('profile') }}">
+            <span class="material-symbols-outlined {% if request.path == url_for('profile') %}fill-1{% endif %}">settings</span>
+            <span class="text-xs font-medium">Settings</span>
+        </a>
+    </div>
+</nav>
